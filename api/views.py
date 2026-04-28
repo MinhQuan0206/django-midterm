@@ -42,17 +42,47 @@ def note_detail_api(request, id):
             'id': note.id,
             'title': note.title,
             'content': note.content,
-            'created_at': note.created_at
+            'created_at': note.created_at.isoformat()
         }, status=200)
 
     # CHỖ TRỐNG CHO THÀNH VIÊN B (Cập nhật - PUT/PATCH)
-    elif request.method == 'PUT':
-        # Thành viên B sẽ kéo code của bạn về và viết logic cập nhật vào đây
-        pass
+    elif request.method in ['PUT', 'PATCH']:
+        try:
+            data = json.loads(request.body or '{}')
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Định dạng dữ liệu gửi lên không phải JSON.'}, status=400)
+
+        title = data.get('title')
+        content = data.get('content')
+
+        if request.method == 'PUT' and (title is None or content is None):
+            return JsonResponse(
+                {'error': 'PUT yêu cầu đầy đủ 2 field: title và content.'},
+                status=400
+            )
+
+        if title is not None:
+            title = str(title).strip()
+            if not title:
+                return JsonResponse({'error': 'Tiêu đề ghi chú không được để trống.'}, status=400)
+            note.title = title
+
+        if content is not None:
+            note.content = str(content)
+
+        note.save()
+        return JsonResponse({
+            'id': note.id,
+            'title': note.title,
+            'content': note.content,
+            'created_at': note.created_at.isoformat()
+        }, status=200)
 
     elif request.method == 'DELETE':
         note.delete() # Lệnh xóa khỏi Database
         return JsonResponse({'message': 'Xóa ghi chú thành công.'}, status=200)
+
+    return JsonResponse({'error': 'Method không được hỗ trợ.'}, status=405)
 
 @csrf_exempt
 def note_list_create(request):
@@ -79,7 +109,7 @@ def note_list_create(request):
                 'id': new_note.id,
                 'title': new_note.title,
                 'content': new_note.content,
-                'created_at': new_note.created_at
+                'created_at': new_note.created_at.isoformat()
             }, status=201)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Định dạng dữ liệu gửi lên không phải JSON.'}, status=400)
