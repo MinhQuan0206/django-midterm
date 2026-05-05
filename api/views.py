@@ -36,7 +36,6 @@ def note_detail_api(request, id):
     except Note.DoesNotExist:
         return JsonResponse({'error': 'Ghi chú không tồn tại.'}, status=404)
 
-    # CHỖ TRỐNG CHO THÀNH VIÊN B (Lấy chi tiết - GET)
     if request.method == 'GET':
         return JsonResponse({
             'id': note.id,
@@ -45,7 +44,6 @@ def note_detail_api(request, id):
             'created_at': note.created_at.isoformat()
         }, status=200)
 
-    # CHỖ TRỐNG CHO THÀNH VIÊN B (Cập nhật - PUT/PATCH)
     elif request.method in ['PUT', 'PATCH']:
         try:
             data = json.loads(request.body or '{}')
